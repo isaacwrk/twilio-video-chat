@@ -1,61 +1,61 @@
 <template>
-    <template>
-        <div class="container-fluid chat_container" id="app">
-            <div class="row" v-if="authenticated">
-                <Rooms />
-                <Video :username="username"/>
-                <Logs />
-            </div>
-            <div class="row" v-else>
-                <div class="username">
-                    <form class="form-inline" @submit.prevent="submitUsername(username)">
-                        <div class="form-group mb-2">
-                            <input type="text" class="form-control" v-model="username" >
-                        </div>
-                        <button type="submit" class="btn btn-primary mb-2 Botton">Submit</button>
-                    </form>
-                </div>
+    <div class="container-fluid chat_container" id="app">
+        <div class="row" v-if="data.authenticated">
+            <Rooms />
+            <Video :username="data.username"/>
+            <Logs />
+        </div>
+        <div class="row" v-else>
+            <div class="username">
+                <form class="form-inline" @submit.prevent="submitUsername(data.username)">
+                    <div class="form-group mb-2">
+                        <input type="text" class="form-control" v-model="data.username" >
+                    </div>
+                    <button type="submit" class="btn btn-primary mb-2 Botton">Submit</button>
+                </form>
             </div>
         </div>
-    </template>
+    </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
+
 import AddRoom from '@/components/AddRom.vue';
 import Logs from '@/components/Logs.vue';
 import Rooms from "@/components/Rooms.vue";
 import Video from '@/components/Video.vue';
-import { reactive } from '@vue/reactivity';
+import { defineComponent, reactive } from 'vue';
 
 interface userData{
     username:string | null,
-    authenticated: boolean
+    authenticated: boolean | null
 }
-@Options({
+
+const Home = defineComponent({
     components: {
         AddRoom,
         Logs,
         Rooms,
         Video
     },
+
     setup(){
         const data = reactive<userData>({
             username:"",
             authenticated: false
         });
-        
+
         function submitUsername(username:userData){
             if(!username){
                 return alert('Por favor insira um Username');
             }
-            return data.authenticated;
+            data.authenticated = true;
         }
-
-        return{ submitUsername };
+        return{ submitUsername, data };
     }
-})
-export default class Home extends Vue {}
+});
+export default Home;
+
 </script>
 
 <style>
