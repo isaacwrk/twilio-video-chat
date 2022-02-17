@@ -11,6 +11,7 @@
 
 <script lang='ts'>
 import { defineComponent, reactive } from 'vue';
+import useEmmitter from '@/composables/userEmmiter';
 
 
 interface dataRoom{
@@ -24,13 +25,14 @@ const AddRoom = defineComponent({
             roomName:""
         });
 
+        const emmiter = useEmmitter();
+
         function createNewRoom(name:string){
             if(!name){
                 alert("Insira um nome para a sala");
             }
-
             data.roomName = "";
-           
+            emmiter.$emit("new_room", data);
         }
 
         {return createNewRoom;}
