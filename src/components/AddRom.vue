@@ -1,8 +1,8 @@
 <template>
     <div class="row roomForm">
-        <form class="form-inline" @submit.prevent="createNewRoom(room_name)">
+        <form class="form-inline" @submit.prevent="createNewRoom(data.roomName)">
             <div class="form-group mb-2">
-                <input type="text" class="form-control" v-model="room_name" >
+                <input type="text" class="form-control" v-model="data.roomName" >
             </div>
             <button type="submit" class="btn btn-primary mb-2 createRoomBotton">Create Room</button>
         </form>
@@ -32,10 +32,10 @@ const AddRoom = defineComponent({
                 alert("Insira um nome para a sala");
             }
             data.roomName = "";
-            emmiter.$emit("new_room", data);
+            emmiter.emit("new_room", name);
         }
 
-        {return createNewRoom;}
+        return { createNewRoom, data };
     }
 });
 
