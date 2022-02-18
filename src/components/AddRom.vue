@@ -1,8 +1,8 @@
 <template>
     <div class="row roomForm">
-        <form class="form-inline" @submit.prevent="createNewRoom(data.roomName)">
+        <form class="form-inline" @submit.prevent="createNewRoom(data.room_name)">
             <div class="form-group mb-2">
-                <input type="text" class="form-control" v-model="data.roomName" >
+                <input type="text" class="form-control" v-model="data.roomNroom_nameame" >
             </div>
             <button type="submit" class="btn btn-primary mb-2 createRoomBotton">Create Room</button>
         </form>
@@ -15,14 +15,14 @@ import useEmmitter from '@/composables/userEmmiter';
 
 
 interface dataRoom{
-    roomName: string | null
+    room_name: string | null
 
 }
 const AddRoom = defineComponent({
     name:'AddRoom',
     setup(){
         const data = reactive<dataRoom>({
-            roomName:""
+            room_name:""
         });
 
         const emmiter = useEmmitter();
@@ -31,7 +31,7 @@ const AddRoom = defineComponent({
             if(!name){
                 alert("Insira um nome para a sala");
             }
-            data.roomName = "";
+            data.room_name = "";
             emmiter.emit("new_room", name);
         }
 

@@ -1,6 +1,6 @@
 <template>
     <div class="col-md-3 box">
-        <div class="log"  v-for="log in logs" v-bind:key="log.id">
+        <div class="log"  v-for="log in data.logs" v-bind:key="log.id">
             {{log.message}}
         </div>
     </div>
@@ -31,6 +31,8 @@ const Logs = defineComponent({
                 data.logCount += 1;
             });
         });
+
+        return { data };
     }
 });
 
