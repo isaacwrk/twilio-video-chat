@@ -18,6 +18,7 @@
 <script lang='ts'>
 import { defineComponent, onMounted, reactive } from 'vue';
 import useEmmitter from '@/composables/userEmmiter';
+import Twilio, { connect, createLocalTracks, createLocalVideoTrack } from 'twilio-video';
 import axios from "axios";
 
 interface videoData{
@@ -25,10 +26,11 @@ interface videoData{
     data:any,
     localTrack:boolean,
     remoteTrack:string,
-    activeRoom:string,
+    activeRoom:any,
     previewTracks:'',
     identity:'',
-    roomName:null
+    roomName:null | string,
+    vueThis: any
 }
 
 const Video = defineComponent({
@@ -36,40 +38,102 @@ const Video = defineComponent({
     props:{
         username:String,
     },
-    setup(){
+    setup(props){
         const emmiter = useEmmitter();
         const data = reactive<videoData>({
             loading:false,
             data:{},
             localTrack:false,
             remoteTrack:'',
-            activeRoom:'',
+            activeRoom:false,
             previewTracks:'',
             identity:'',
-            roomName:null
+            roomName:null,
+            vueThis:''
         });
+
+
+        //Gerar o acess token
+        async function getAcessToken(){
+            return await axios.get(`http://localhost:3000/token?identity=${props.username}`);
+        }
+            
+        //Gatilho dos eventos do log,
+        function dispatchLog(message:string){
+            emmiter.emit('new_log',message);
+        }
+
+        function attachTracks(tracks:any,container:any){
+            tracks.forEach(function(track:any){
+                container.appendChild(track.attach());
+            });
+        }
+
+        function attachParticipantTracks(participant:any,container:any){
+            let tracks = Array.from(participant.track.values());
+            return attachTracks(tracks, container);
+        }
+
+        function detachTracks(tracks:any){
+            tracks.forEach((track:any) => {
+                track.detach().forEach((detachedElement:any)=>{
+                    detachedElement.remove();
+                });
+            });
+        }
+
+        function detachParticipantTracks(participant:any){
+            let tracks = Array.from(participant.tracks.value());
+            return detachTracks(tracks);
+        }
+
+        function leaveRoomIfJoined(){
+            if(data.activeRoom){
+                data.activeRoom.disconnect();
+            }
+        }
+
+        function createChat(room_name:string){
+            data.loading = true;
+            data.vueThis.getAcessToken().then((data:any)=>{
+                data.data.roomName = null;
+                const token = data.data.token;
+                let connectOptions = {
+                    name:room_name,
+                    audio:true,
+                    video:{ width: 400 }
+                };
+                    //disconecta o usuario de uma uma outra sala
+                data.vueThis.leaveRoomIfJoined();
+
+                    //remove todas as tracks quando entrar em uma nova sala
+                    document.getElementById('remoteTrack')?.innerHTML;
+
+                    Twilio.connect(token,connectOptions).then(function(room){
+                        //log se entrar com sucesso
+                        data.vueThis.dispatchLog('Entrou na sala com sucesso' + room_name);
+
+                        data.vueThis.activeRoom = room,
+                        data.roomName = room_name,
+                        data.vueThis.loading=false;
+                    });
+            }
+            );} 
 
         onMounted(()=>{
-            //Gerar o acess token
-            async function getAcessToken(){}
-            
-            //Gatilho dos eventos do log,
-            function dispatchLog(message:string){}
-
-            function attachTracks(tracks:any,container:any){}
-
-            function detachTacks(tracks:any){}
-
-            function detachParticipantTracks(participant:string){}
-
-            function leaveRoomIfJoined(){}
-
-            function createChat(room_name:string){}
-
+            getAcessToken();
         });
 
-
-        return { data };
+        return { 
+            data,
+            getAcessToken,
+            dispatchLog,
+            attachTracks,
+            attachParticipantTracks,
+            detachParticipantTracks,
+            leaveRoomIfJoined,
+            createChat
+        };
     }
 });
 

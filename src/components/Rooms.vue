@@ -21,8 +21,8 @@ const Rooms = defineComponent({
     setup(){
         const data = reactive({
             rooms: [
-                { id: 1, name: 'PHP Room' },
-                { id: 2, name: 'Python Room' },
+                { id: 1, name: 'Vue Room' },
+                { id: 2, name: 'React Room' },
                 { id: 3, name: 'Daily standup' }
             ],
             roomCount: 3, // used to keep track of the number of rooms present
