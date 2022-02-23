@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '../views/Home.vue';
+import Token from '../components/Token.vue';
+
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -7,6 +9,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'Home',
         component: Home
     },
+    {
+        path:'/token',
+        name:'Token',
+        component: Token
+    }
 ];
 
 const router = createRouter({
