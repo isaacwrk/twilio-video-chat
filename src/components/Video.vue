@@ -14,9 +14,13 @@
 
         <div class="row remote_video_container">
             <div id="remoteTrack"></div>
-            <div id="videoPreview"></div>
-            <div id="remote-media-div"></div>
-
+            <div id="videoPreview" class="relative">
+            </div>
+            <div id="remote-media-div" class="relative">
+            </div>
+            <div v-if="isOpened" class="cursor-pointer">
+                <button id="disable" class="absolute bottom-8 inset-x-1 w-16 bg-red-200 text-red-600">desligar</button>
+            </div> 
         </div>
         <div class="spacing"></div>
         <div class="row">
@@ -26,7 +30,7 @@
 </template>
 
 <script lang='ts'>
-import { defineComponent, reactive } from 'vue';
+import { defineComponent, reactive,ref } from 'vue';
 import useEmmitter from '@/composables/userEmmiter';
 import Twilio, { connect, createLocalTracks, createLocalVideoTrack, RemoteAudioTrack, RemoteDataTrack, RemoteVideoTrack, RemoteTrack } from 'twilio-video';
 
@@ -42,7 +46,8 @@ interface videoData{
     previewTracks:'',
     identity:'',
     roomName:null | string,
-    vueThis: any
+    vueThis: any,
+    room:any
 }
 
 const Video = defineComponent({
@@ -67,24 +72,30 @@ const Video = defineComponent({
             previewTracks:'',
             identity:'',
             roomName:null,
-            vueThis:''
+            vueThis:'',
+            room:''
         });
 
-        // Gerar o acess token
-        // async function getAcessToken(){
-        //     return await axios.get(`http://localhost:3000/token?identity=${props.roomName}`);
-        // }
+        const isOpened = ref(false);
+        const leftRoom = ref<HTMLElement | null>(null);
 
         function previewVideo(){
             createLocalVideoTrack().then(track => {
+                isOpened.value = true;
                 const localMediaContainer = document.getElementById('videoPreview');
             localMediaContainer?.appendChild(track.attach());
             });
         }
 
         function attachTrack(track:RemoteVideoTrack|RemoteAudioTrack){
-            let previewContainer = document.getElementById('remote-media-div');
-            previewContainer?.appendChild((track!.attach()));
+            leftRoom.value= document.getElementById('remote-media-div');
+            leftRoom.value?.appendChild((track!.attach()));
+        }
+
+        function disableVideo(track:any){
+            console.log('desativei');
+            leftRoom.value = document.getElementById('remote-media-div');
+            leftRoom.value?.append((track!.stop()));
         }
 
         function trackExistsAndIsAttachable(track:RemoteTrack): track is RemoteAudioTrack | RemoteVideoTrack {
@@ -95,9 +106,12 @@ const Video = defineComponent({
             console.log('token: ' + props.token);
             console.log('roomName: ' + props.roomName);
             const connectOptions = { name: props.roomName, audio : true , video:{ width: 400 } };
+            isOpened.value = true;
             Twilio.connect(props.token!,connectOptions).then(function(room){
                 console.log(('Entrou na sala com sucesso ' + props.roomName));
-
+                
+                data.room = room;
+                data.activeRoom = true;
                 //data.vueThis.activeRoom = room,
                 data.roomName = props.roomName!,
                 // data.vueThis.loading = false;
@@ -122,6 +136,7 @@ const Video = defineComponent({
                         }
                         attachTrack(track);
                     });
+
                 });
 
                 room.on('participantConnected', function(participant){
@@ -147,15 +162,25 @@ const Video = defineComponent({
                         }
                         attachTrack(track);
                     });
+
+                    document.getElementById('disable')?.addEventListener('click',()=>{
+                        participant.on('trackUnsubscribed', (track:(RemoteAudioTrack | RemoteVideoTrack)) =>{
+                            track.detach();
+                        });
+                    });
                 });
 
                 room.on('participantDisconnected', function(participant) {
                     console.log(("Participant linha 148 '" + participant.identity + "' left the room"));
                     console.log(('linha 149 ' + participant));
+
                 });
 
             });
+
+
         }
+
 
         //Gatilho dos eventos do log,
         function dispatchLog(message:string){
@@ -186,11 +211,7 @@ const Video = defineComponent({
             return detachTracks(tracks);
         }
 
-        function leaveRoomIfJoined(){
-            if(data.activeRoom){
-                data.activeRoom.disconnect();
-            }
-        }
+        
 
         function createChat(room_name:string){
             data.loading = true;
@@ -269,10 +290,11 @@ const Video = defineComponent({
             attachTracks,
             attachParticipantTracks,
             detachParticipantTracks,
-            leaveRoomIfJoined,
             createChat,
             joinRoom,
-            previewVideo
+            previewVideo,
+            isOpened,
+            disableVideo
         };
     }
 });
